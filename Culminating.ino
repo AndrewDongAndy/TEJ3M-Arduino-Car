@@ -36,7 +36,7 @@ const int DELAY_TIME = 1000;
 const int FULL_SPEED = 150;
 const int HALF_SPEED = 100;
 
-// how often we look for a line in the follow_line() function
+// how often we look for a line in the follow_line_test() function
 const int INCREMENT = 80;
 
 // setup for ultrasonic sensor
@@ -137,7 +137,15 @@ void rotate_test() {
 
 // --------------------SUBMISSION 3 CODE--------------------
 
-void follow_line(int milliseconds) {
+void detect_line_test() {
+  // does a 360 when a black line is detected
+  while (digitalRead(SENSOR_PIN) == HIGH) { // non-black was detected
+    spin_motors(HALF_SPEED, HALF_SPEED);
+  }
+  rotate(360);
+}
+
+void follow_line_test(int milliseconds) {
   // line follower code
   int start_time = millis();
   int end_time = start_time + milliseconds;
@@ -196,7 +204,7 @@ void setup() {
 //  speed_test();
 //  straight_line_test();
 //  rotate_test();
-  follow_line(30000);
+  follow_line_test(30000);
   //obstacle_test();
 }
 
