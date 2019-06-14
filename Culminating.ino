@@ -1,6 +1,6 @@
 /*
 Joanna and Andy (and Dimitri for the last 2 days)
-June 14, 2019
+Due June 14, 2019
 
 A program to control the Arduino robot car.
 */
@@ -40,10 +40,13 @@ const int HALF_SPEED = 100;
 const int INCREMENT = 80;
 
 // setup for ultrasonic sensor
+// TODO: ensure pin values are correct
 #define TRIGGER_PIN A1
 #define ECHO_PIN A2
 NewPing sonar(TRIGGER_PIN, ECHO_PIN);
-const int THRESHOLD = 5; // centimetres before switching direction
+
+// for wall detection: centimetres before switching direction
+const int THRESHOLD = 12;
 
 
 // --------------------UTILITY FUNCTIONS--------------------
@@ -132,42 +135,58 @@ void rotate_test() {
 }
 
 
-
 // --------------------SUBMISSION 3 CODE--------------------
 
-// code to make the car follow lines
 void follow_line(int milliseconds) {
+  // line follower code
   int start_time = millis();
   int end_time = start_time + milliseconds;
-//  int last_wheel = LEFT;
-  while (millis() < end_time) { // loop while end time is not reached
-    if (digitalRead(SENSOR_PIN) == LOW) { // sensor detected black
+  while (millis() < end_time) {
+    // NOTE: LOW means black was detected
+    if (digitalRead(SENSOR_PIN) == LOW) {
+      // move right (spin left motor)
       spin_motors_timed(HALF_SPEED, 0, INCREMENT);
-    } else { // sensor didn't detect black
+    } else {
       spin_motors_timed(0, HALF_SPEED, INCREMENT);
     }
   }
 }
 
 
-
 // --------------------SUBMISSION 4 CODE--------------------
+
+void obstacle_test() {
+  // detection for obstacles; does a 360 once obstacle is detected
+  while (sonar.ping_cm() > THRESHOLD) {
+    spin_motors(HALF_SPEED, HALF_SPEED);
+  }
+  rotate_car(360);
+}
 
 void ping_pong_test(int milliseconds) {
   int start_time = millis();
   int end_time = start_time + milliseconds;
   while (millis() < end_time) { // loop while end time is not reached
-    int d = sonar.ping_cm();
-    if (d < THRESHOLD) {
-      rotate_car(180);
+    if (sonar.ping_cm() > THRESHOLD) {
+      spin_motors(HALF_SPEED, HALF_SPEED); // not close to a wall
     } else {
-      spin_motors(HALF_SPEED, HALF_SPEED);
+      rotate_car(180); // too close to wall; turn around
     }
   }
 }
 
+void boundary_test() {
+  // ensure lap direction is counterclockwise
+  for (int i = 0; i < 4; i++) {
+    while (sonar.ping_cm() > THRESHOLD) { // not close to wall
+      spin_motors(HALF_SPEED, HALF_SPEED);
+    }
+    rotate_car(90); // turn left
+  }
+}
+
 void setup() {
-  // set pin modes (all are outputs)
+  // set pin modes
   for (int m = 0; m < 2; m++) {
     for (int w = 0; w < 2; w++) {
       pinMode(MOTOR_PINS[m][w], OUTPUT);
@@ -177,7 +196,8 @@ void setup() {
 //  speed_test();
 //  straight_line_test();
 //  rotate_test();
-  follow_line(10000);
+  follow_line(30000);
+  //obstacle_test();
 }
 
 void loop() {
