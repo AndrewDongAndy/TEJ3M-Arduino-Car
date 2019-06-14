@@ -1,7 +1,6 @@
 /*
 Joanna and Andy (and Dimitri for the last 2 days)
 Due June 14, 2019
-
 A program to control the Arduino robot car.
 */
 
@@ -17,7 +16,7 @@ A program to control the Arduino robot car.
 const int MOTOR_PINS[2][2] = {{2, 3}, {4, 5}};
 
 // pin for line detection: LOW is black, HIGH is other
-#define SENSOR_PIN 8;
+#define SENSOR_PIN 8
 
 // constants for linear and rotational motion
 /*
@@ -27,17 +26,15 @@ imperfection.
 */
 const double FORWARD_IMBALANCE = 1.04;
 const double BACKWARD_IMBALANCE = 1.14;
-const double ROTATION_TIME = 7.2;
+const double ROTATION_TIME = 5.8;
 
 // delay time between actions
 const int DELAY_TIME = 1000;
 
 // analog values for full and half speed
-const int FULL_SPEED = 150;
+const int FULL_SPEED = 180;
 const int HALF_SPEED = 100;
-
-// how often we look for a line in the follow_line_test() function
-const int INCREMENT = 80;
+const int QUARTER_SPEED = 85;
 
 // setup for ultrasonic sensor
 // TODO: ensure pin values are correct
@@ -47,6 +44,8 @@ NewPing sonar(TRIGGER_PIN, ECHO_PIN);
 
 // for wall detection: centimetres before switching direction
 const int THRESHOLD = 12;
+
+const int NO_TIME_LIMIT = -420;
 
 
 // --------------------UTILITY FUNCTIONS--------------------
@@ -73,8 +72,7 @@ void spin_motors(int left_speed, int right_speed) {
 }
 
 void spin_motors_timed(int left_speed, int right_speed, int milliseconds) {
-  int start_time = millis();
-  int end_time = start_time + milliseconds;
+  int end_time = millis() + milliseconds;
   while (millis() < end_time) { // loop while end time is not reached
     spin_motors(left_speed, right_speed);
   }
@@ -106,6 +104,10 @@ void go_full_speed(int milliseconds) {
 
 void go_half_speed(int milliseconds) {
   spin_motors_timed(HALF_SPEED, milliseconds);
+}
+
+void go_quarter_speed(int milliseconds) {
+  spin_motors_timed(QUARTER_SPEED, milliseconds);
 }
 
 
@@ -140,28 +142,30 @@ void rotate_test() {
 void detect_line_test() {
   // does a 360 when a black line is detected
   while (digitalRead(SENSOR_PIN) == HIGH) { // non-black was detected
-    spin_motors(HALF_SPEED, HALF_SPEED);
+    spin_motors(FULL_SPEED, FULL_SPEED);
   }
-  rotate(360);
+  rotate_car(360);
 }
 
-void follow_line_test(int milliseconds) {
+void follow_line_test() {
   // line follower code
-  int start_time = millis();
-  int end_time = start_time + milliseconds;
-  while (millis() < end_time) {
+  while (true) {
+    spin_motors(QUARTER_SPEED, QUARTER_SPEED);
     // NOTE: LOW means black was detected
     if (digitalRead(SENSOR_PIN) == LOW) {
-      // move right (spin left motor)
-      spin_motors_timed(HALF_SPEED, 0, INCREMENT);
+      rotate_car(-4);
     } else {
-      spin_motors_timed(0, HALF_SPEED, INCREMENT);
+      rotate_car(4);
     }
   }
 }
 
 
 // --------------------SUBMISSION 4 CODE--------------------
+/*
+NOTE: as of the end of the period on June 14, this is no longer needed.
+Thank you Mr. Schaeffer! :)
+*/
 
 void obstacle_test() {
   // detection for obstacles; does a 360 once obstacle is detected
@@ -172,8 +176,7 @@ void obstacle_test() {
 }
 
 void ping_pong_test(int milliseconds) {
-  int start_time = millis();
-  int end_time = start_time + milliseconds;
+  int end_time = millis() + milliseconds;
   while (millis() < end_time) { // loop while end time is not reached
     if (sonar.ping_cm() > THRESHOLD) {
       spin_motors(HALF_SPEED, HALF_SPEED); // not close to a wall
@@ -193,6 +196,9 @@ void boundary_test() {
   }
 }
 
+
+// --------------------DRIVER CODE--------------------
+
 void setup() {
   // set pin modes
   for (int m = 0; m < 2; m++) {
@@ -204,10 +210,15 @@ void setup() {
 //  speed_test();
 //  straight_line_test();
 //  rotate_test();
-  follow_line_test(30000);
-  //obstacle_test();
+//  detect_line_test();
+  follow_line_test();
+//  obstacle_test();
 }
 
+/*
+NOTE: the below code is mandatory for compilation, but all that
+we do is keep the motors off.
+*/
 void loop() {
   spin_motors(0, 0); // keep motors off
 }
