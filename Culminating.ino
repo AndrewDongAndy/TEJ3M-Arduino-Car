@@ -148,10 +148,11 @@ void detect_line_test() {
 }
 
 void follow_line_test() {
-  // line follower code
+  // the sensor got moved to the back, so we are reversing the
+  // direction for everything in this submission
+  const int SPEED = -HALF_SPEED;
   while (true) {
-    spin_motors(QUARTER_SPEED, QUARTER_SPEED);
-    // NOTE: LOW means black was detected
+    spin_motors(SPEED, SPEED);
     if (digitalRead(SENSOR_PIN) == LOW) {
       rotate_car(-4);
     } else {
