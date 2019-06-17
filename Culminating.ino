@@ -1,5 +1,5 @@
 /*
-Joanna and Andy (and Dimitri for the last 2 days)
+Joanna and Andy (and Dimitri for the last three days)
 Due June 14, 2019
 A program to control the Arduino robot car.
 */
@@ -150,15 +150,15 @@ void detect_line_test() {
 void follow_line_test() {
   // the sensor got moved to the back, so we are reversing the
   // direction for everything in this submission
-  const int SPEED = -HALF_SPEED;
+  const int SPEED = -QUARTER_SPEED;
   while (true) {
-    spin_motors(SPEED, SPEED);
     if (digitalRead(SENSOR_PIN) == LOW) {
-      rotate_car(-4);
+      spin_motors(SPEED, 0);
     } else {
-      rotate_car(4);
+      spin_motors(0, SPEED);
     }
   }
+  // lol this code is so simple but it works
 }
 
 
